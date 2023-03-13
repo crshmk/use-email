@@ -1,1 +1,1 @@
-Basic rollup setup for js only 
+A react hook for axios users to identify valid and unique emails

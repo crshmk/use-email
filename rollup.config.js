@@ -8,10 +8,7 @@ export default {
     output: {
         file: './dist/utils.min.js',
         format: 'cjs',
-        name: 'bundle',
-        globals: {
-            'ramda': 'r',
-        }
+        name: 'bundle'
     },
     plugins: [
         babel({
@@ -20,5 +17,6 @@ export default {
         resolve(),
         commonjs(),
         uglify()
-    ]
+    ],
+    external: ['axios', 'lodash.debounce', 'react']
 }

@@ -1,7 +1,7 @@
 {
-  "name": "rollup-boilerplate",
+  "name": "use-email",
   "version": "1.0.0",
-  "description": "basic rollup setup",
+  "description": "A react hook for axios users to identify valid and unique emails",
   "main": "./dist/utils.min.js",
   "type": "commonjs",
   "scripts": {
@@ -20,5 +20,10 @@
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-uglify": "^6.0.4"
+  },
+  "peerDependencies": {
+    "axios": ">=0.20.0",
+    "lodash.debounce": ">=4.17.0",
+    "react": ">=16.3.0"
   }
 }
