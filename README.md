@@ -2,6 +2,12 @@
 
 when your application needs to ensure a user provided email is unique to the app
 
+```bash
+npm run build 
+npm link 
+npm link use-email
+```
+
 ### Create the hook by passing a config
 ```javascript 
 {
