@@ -1,19 +1,30 @@
-const defaultDelay = 300
+const defaultDelay = 700
+const defaultErrorHandler = console.log
 
 /**
- * @param config Object { onFetchError: Function }
- * @return Function handed the error response 
+ * @param items Array<String> old state
+ * @return Array<String> new state with item added
  */
-export const getOnFetchError = config => config?.onFetchError || console.log
+export const concatEmail = newEmail => emails => 
+  emails.concat(newEmail)
 
 /**
  * @param config Object { delay: Number }
  * @return Number
  */
-export const getDelay = config => config?.delay || defaultDelay
+export const getDelay = config => 
+  config?.delay || defaultDelay
+
+/**
+ * @param config Object { onFetchError: Function }
+ * @return Function handed the error response 
+ */
+export const getOnFetchError = config => 
+  config?.onFetchError || defaultErrorHandler
 
 /**
  * @param response Axios response 
- * @return Boolean from response shape { data: { doesEmailExist: true } }
+ * @return Boolean { data: { isEmailUniq: true } }
  */
-export const getResponse = response => !!response?.data?.doesEmailExist
+export const getResponse = response => 
+  response?.data?.isEmailUniq

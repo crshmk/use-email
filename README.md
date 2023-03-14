@@ -1,4 +1,4 @@
-# A react hook for axios users to identify valid and unique emails
+# A react hook for email validation with [axios](https://axios-http.com/)
 
 when your application needs to ensure a user provided email is unique to the app
 
@@ -64,8 +64,9 @@ import useEmail from './useEmail'
 
 const EmailInput = () => {
   const {
-    doesEmailExist,
     email,
+    isDuplicateEmail,
+    isEmailUniq,
     isFetchingEmail,
     isValidEmail,
     onChangeEmailInput
@@ -76,8 +77,9 @@ const EmailInput = () => {
  return (
   <>
   <input value={email} onChange={onChangeEmailInput} style={style} />
-  {isFetchingEmail && <p>Checking that email address...</p>}
-  {doesEmailExist && <p>Email already in use</p>}
+  {isFetchingEmail && <p>Fetching...</p>}
+  {isUniqEmail && <p>Email is ok</p>}
+  {isDuplicateEmail && <p>A user with {email} exists</p>}
   </>
  )
 }
@@ -85,13 +87,15 @@ const EmailInput = () => {
 
 ### Hook api 
 
-`doesEmailExist`: Boolean - most recent response from the server; if the email has yet to be used by a user
+`email`: String - the value of the email input, to be set as the input value
 
-`email`: String - the value of the email input, to be set as the input value and likely useful in a `useEffect` hook
+`isDuplicateEmail`: Boolean - email has been determined by the server to be a duplicate
+
+`isEmailUniq`: Boolean - email has been determined by the server to be yet unused
 
 `isFetchingEmail`: Boolean
 
-`isValidEmail`: Boolean - if the current email value is a valid email 
+`isValidEmail`: Boolean - the current email value is a valid email according to [this test](https://github.com/crshmk/use-email/blob/master/src/isEmail.js)
 
 `onChangeEmailInput`: Function - the `onChange` handler for the email input
 
@@ -101,21 +105,29 @@ const EmailInput = () => {
 
 Axios sends a post request to the `baseURL` endpoint (passed to the [hook config](https://github.com/crshmk/use-email#1-create-the-hook-by-passing-a-config)) with an `email` payload prop
 ```json
-{ "email": "emailinput@co.com" }
+{ "email": "email@co.com" }
 ```
 
 The client expects a response from the server with this shape 
 ```json
-{ "doesEmailExist": true }
+{ "data": { "isEmailUniq": true } }
 ```
-and will then update the `doesEmailExist` hook prop 
+and will then update the `isEmailUniq` hook prop. Only booleans signal a valid response.
+
+```javascript 
+// test middleware
+export default function isEmailUniq(req, res) {
+  const isEmailUniq = Math.random() < 0.5
+  res.json({ isEmailUniq })
+}
+```
 
 
 ---
 
 ## Caveats 
 
-Each hook call handles a unique email input. Return all the props in one hook call; don't split as below. 
+- Each hook call handles a unique email input. Return all the props in one hook call; don't split as below. 
 
 ```javascript
 const Spinner = () => {
@@ -134,3 +146,5 @@ const EmailInput = () => {
   ) 
 }
 ```
+
+- The route should likely be [guarded](https://www.npmjs.com/package/express-throttle). 

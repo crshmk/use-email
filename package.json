@@ -1,7 +1,7 @@
 {
   "name": "use-email",
   "version": "1.0.0",
-  "description": "A react hook for axios users to identify valid and unique emails",
+  "description": "A react hook for email validation with axios",
   "main": "./dist/utils.min.js",
   "type": "commonjs",
   "scripts": {

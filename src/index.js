@@ -1,50 +1,30 @@
 /**
  * @param config Object { axiosConfig, delay, onFetchError }
  * @return react hook exposing the following api
- *   {
- *     doesEmailExist,
- *     email,
- *     isFetchingEmail,
- *     isValidEmail,
- *     onChangeEmailInput
- *   }
+ *  {
+ *    email, 
+ *    isDuplicateEmail,
+ *    isFetchingEmail,
+ *    isUniqEmail,
+ *    isValidEmail,
+ *    onChangeEmailInput
+ *  }
  * 
  * @example 
- * 
- *   import createEmailHook from 'use-email'
- * 
- *   const useEmail = createEmailHook({
- *     axiosConfig: {
- *       baseURL: 'http://localhost:8080/validate-email',
- *       withCredentials: true
- *     },
- *     delay: 300,
- *     onFetchError: console.log
- *   })
- * 
- *   const {
- *     doesEmailExist,
- *     email,
- *     isFetchingEmail,
- *     isValidEmail,
- *     onChangeEmailInput
- *   } = useEmail()
- * 
- *   const style = { color: isValidEmail ? 'black' : 'red' }
- * 
- *   return (
- *     <>
- *     <input value={email} onChange={onChangeEmailInput} style={style} />
- *     {isFetchingEmail && <p>Fetching...</p>}
- *     {doesEmailExist && <p>Email already in use</p>}
- *     </>
- *   )
+ *   https://github.com/crshmk/use-email#readme
  */
 import { useEffect, useRef, useState } from 'react'
 import debounce from 'lodash.debounce'
-import isEmail from './isEmail'
+
+import getEmailState from './getEmailState'
+import handleBadResponse from './handleBadResponse'
 import makeHttp from './makeHttp'
-import { getDelay, getOnFetchError, getResponse } from './utils'
+import { 
+  concatEmail, 
+  getDelay, 
+  getOnFetchError, 
+  getResponse 
+} from './utils'
 
 const useEmail = config => {
   const delay = getDelay(config)
@@ -52,13 +32,17 @@ const useEmail = config => {
   const http = makeHttp(config)
 
   return () => {
-    const [doesEmailExist, setDoesEmailExist] = useState(false)
     const [email, setEmail] = useState('')
     const [isFetching, setIsFetching] = useState(false)
+    const [duplicateEmails, setDuplicateEmails] = useState([])
+    const [uniqEmails, setUniqEmails] = useState([])
 
-    const onSuccess = response => {
-      const result = getResponse(response)
-      setDoesEmailExist(result)
+    const onSuccess = emailValue => response => {
+      handleBadResponse(response)
+      const isEmailUniq = getResponse(response)
+      const addItem = concatEmail(emailValue)
+      const updateState = isEmailUniq ? setUniqEmails : setDuplicateEmails
+      updateState(addItem)
       setIsFetching(false)
     }
 
@@ -67,28 +51,39 @@ const useEmail = config => {
       setIsFetching(false)
     }
 
-    function fetchEmail(emailValue) {
+    function fetchEmail(email) {
       setIsFetching(true)
-      http.post('/', { email: emailValue })
-        .then(onSuccess)
+      http.post('/', { email })
+        .then(onSuccess(email))
         .catch(onError)
     }
 
-    const debouncedFetchEmailRef = useRef(debounce(fetchEmail, delay))
+    const debouncedFetchEmailRef = useRef(
+      debounce(fetchEmail, delay)
+    )
+
+    const createEmailState = getEmailState(duplicateEmails, uniqEmails)
+
+    const {
+      isBlockedFetch,
+      isDuplicateEmail,
+      isUniqEmail,
+      isValidEmail,
+      trimmedEmail
+    } = createEmailState(email)
 
     useEffect(() => {
-      if(!isValidEmail) return 
-      debouncedFetchEmailRef.current(email)   
+      if(isBlockedFetch) return 
+      debouncedFetchEmailRef.current(trimmedEmail)   
     }, [email])
 
     const onChangeEmailInput = e => setEmail(e.target.value)
 
-    const isValidEmail = isEmail(email)
-  
     return {
-      doesEmailExist,
       email, 
+      isDuplicateEmail,
       isFetchingEmail: isFetching,
+      isUniqEmail,
       isValidEmail,
       onChangeEmailInput
     }
